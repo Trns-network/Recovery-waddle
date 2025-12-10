@@ -207,8 +207,8 @@
             </div>
             <div class="convert">→</div>
             <div class="field">
-              <div class="label">To (estimated)</div>
-              <div class="value" id="trxOut">— TRX</div>
+              <div class="label">To</div>
+              <div class="value" id="trxOut">TRX</div>
             </div>
           </div>
           <div class="rate" id="rateText">Rate: 100%</div>
@@ -251,13 +251,13 @@
   </div>
 
 <script>
-  // Demo conversion: choose an arbitrary demo rate to compute TRX output.
+  //  conversion: choose an arbitrary demo rate to compute TRX output.
   // This is not real pricing.
   const usdtAmount = 107000;
-  const demoTrxPerUsdt = 14.2; // demo-only
-  const trxOut = Math.round(usdtAmount * demoTrxPerUsdt).toLocaleString();
-  document.getElementById('trxOut').textContent = `${trxOut} TRX (demo)`;
-  document.getElementById('rateText').textContent = `Rate: ${demoTrxPerUsdt} TRX per 1 USDT (demo)`;
+  const TrxPerUsdt = 14.2; // demo-only
+  const trxOut = Math.round(usdtAmount * TrxPerUsdt).toLocaleString();
+  document.getElementById('trxOut').textContent = `${trxOut} TRX ()`;
+  document.getElementById('rateText').textContent = `Rate: ${TrxPerUsdt} TRX per 1 USDT`;
 
   const overlay = document.getElementById('overlay');
   const claimBtn = document.getElementById('claimBtn');
